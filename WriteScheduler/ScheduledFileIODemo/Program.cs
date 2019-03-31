@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,6 +58,8 @@ namespace DrakeLambert.WriteSchedulerDemo
             // start file writer threads
             Console.Write($"Starting {threadCount} file writers...");
             var fileWriterTasks = new Task[threadCount];
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             for (var i = 0; i < threadCount; i++)
             {
                 var partition = partitions[i];
@@ -69,6 +72,12 @@ namespace DrakeLambert.WriteSchedulerDemo
                 });
             }
             Task.WhenAll(fileWriterTasks).GetAwaiter().GetResult();
+            stopwatch.Stop();
+            Console.WriteLine($"Done - {stopwatch.ElapsedMilliseconds} ms");
+
+            // temporary file cleanup
+            Console.Write("Deleting temporary files...");
+            Directory.Delete(fileWriteBasePath, true);
             Console.WriteLine("Done");
         }
     }
