@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace DrakeLambert.WriteSchedulerDemo
         const int fileCount = 10000;
 
         const int deviceCount = 10;
-        const string fileWriteBasePath = "./temp";
+        static readonly string fileWriteBasePath = Path.Combine(Path.GetTempPath(), "WriteSchedulerDemo");
 
         static void Main(string[] args)
         {
