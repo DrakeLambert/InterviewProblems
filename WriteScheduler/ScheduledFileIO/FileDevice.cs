@@ -16,12 +16,22 @@ namespace DrakeLambert.ScheduledFileIO
         private readonly bool _mockWrite;
 
         /// <summary>
-        /// Creates a new instance.
+        /// Creates a new instance and the specified directory.
         /// </summary>
         /// <param name="fileWritePath">The path to write files.</param>
         /// <param name="mockWrite">If true, file writes do not take place: the thread is delayed according to the length of the file data. If false, the file write takes place.</param>
         /// <returns></returns>
-        public FileDevice(string fileWritePath, bool mockWrite) => (_fileWritePath, _mockWrite) = (fileWritePath, mockWrite);
+        public FileDevice(string fileWritePath, bool mockWrite)
+        {
+            _fileWritePath = fileWritePath;
+            _mockWrite = mockWrite;
+
+            if (Directory.Exists(_fileWritePath))
+            {
+                Directory.Delete(_fileWritePath, true);
+            }
+            Directory.CreateDirectory(_fileWritePath);
+        }
 
         public int PendingWrites => Interlocked.CompareExchange(ref _pendingWrites, 0, 0);
         public int TotalWrites => Interlocked.CompareExchange(ref _totalWrites, 0, 0);
