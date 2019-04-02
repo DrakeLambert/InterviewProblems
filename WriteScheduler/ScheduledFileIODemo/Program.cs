@@ -12,14 +12,37 @@ namespace ScheduledFileIODemo
     {
         static void Main(string[] args)
         {
+            args = args.Select(arg => arg.ToLower()).ToArray();
+
             // constants
             var minimumFileSize = 1_000; // bytes
             var maximumFileSize = 1_000_000; // bytes
-            var fileCount = 1_000;
-
             var threadCount = Environment.ProcessorCount;
 
-            var testCount = 10;
+            var fileCount = 500;
+            if (args.Contains("-filecount"))
+            {
+                var fileIndex = Array.IndexOf(args, "-filecount");
+                fileCount = int.Parse(args[fileIndex + 1]);
+            }
+
+            var testCount = 50;
+            if (args.Contains("-testcount"))
+            {
+                var testIndex = Array.IndexOf(args, "-testcount");
+                testCount = int.Parse(args[testIndex + 1]);
+            }
+
+            var mockWrite = args.Contains("-mockwrite");
+
+            var useOptimizedScheduler = args.Contains("-optimized");
+
+            Console.WriteLine("Starting test...");
+            Console.WriteLine($"Using {(useOptimizedScheduler ? "optimized" : "round robin")} scheduler.");
+            Console.WriteLine($"{fileCount} files per test run.");
+            Console.WriteLine($"{testCount} test runs.");
+            Console.WriteLine($"{(mockWrite ? "Simulating" : "Using")} file system writes.");
+
 
             // create files
             var filePartitions = Enumerable.Range(0, threadCount)
@@ -28,12 +51,15 @@ namespace ScheduledFileIODemo
 
             // create devices
             var tempWritePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            var devices = CreateDevices(10, tempWritePath);
+            var devices = CreateDevices(10, tempWritePath, mockWrite);
 
             // create scheduler
-            var scheduler = new OptimizedWriteScheduler(devices);
+            var scheduler = useOptimizedScheduler
+                ? new OptimizedWriteScheduler(devices) as WriteScheduler
+                : new RoundRobinWriteScheduler(devices) as WriteScheduler;
 
-            var testTimes = new List<long>();
+            // arrange tests
+            var testTimes = new List<int>();
             var stopwatch = new Stopwatch();
             for (var i = 0; i < testCount; i++)
             {
@@ -57,11 +83,12 @@ namespace ScheduledFileIODemo
                     thread.Join();
                 }
                 stopwatch.Stop();
-                testTimes.Add(stopwatch.ElapsedMilliseconds);
-                Console.WriteLine($"Test {i + 1} Time (ms): {stopwatch.ElapsedMilliseconds}");
+                testTimes.Add((int)stopwatch.ElapsedMilliseconds);
+                // Console.WriteLine($"Test {i + 1} Time (ms): {stopwatch.ElapsedMilliseconds}");
                 stopwatch.Reset();
             }
             Console.WriteLine($"Average Time (ms): {testTimes.Average()}");
+            Console.WriteLine($"Standard Deviation (ms): {StandardDeviation(testTimes)}");
 
             // cleanup temporary folders
             Directory.Delete(tempWritePath, recursive: true);
@@ -77,15 +104,22 @@ namespace ScheduledFileIODemo
             return files;
         }
 
-        static Device[] CreateDevices(int count, string writePath)
+        static Device[] CreateDevices(int count, string writePath, bool mockWrite)
         {
             var devices = new Device[count];
             for (int i = 0; i < count; i++)
             {
                 var devicePath = Path.Combine(writePath, "Device" + i.ToString());
-                devices[i] = new FileDevice(devicePath, false);
+                devices[i] = new FileDevice(devicePath, mockWrite);
             }
             return devices;
+        }
+
+        static double StandardDeviation(IEnumerable<int> numbers)
+        {
+            var mean = numbers.Average();
+            var standardDeviation = Math.Sqrt(numbers.Select(n => n - mean).Select(n => n * n).Average());
+            return standardDeviation;
         }
     }
 

@@ -54,8 +54,8 @@ namespace DrakeLambert.ScheduledFileIO
                     {
                         // file system latency (2 ms)
                         Task.Delay(2).GetAwaiter().GetResult();
-                        // file system write time (200 MiB/s)
-                        Task.Delay(data.Length / 209715200).GetAwaiter().GetResult();
+                        // file system write time (250 MB/s)
+                        Task.Delay(data.Length / 250_000_000).GetAwaiter().GetResult();
                     }
                     else
                     {
