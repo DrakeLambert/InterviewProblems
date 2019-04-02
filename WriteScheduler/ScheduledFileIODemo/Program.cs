@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using DrakeLambert.ScheduledFileIO;
+using Medallion;
 
 namespace ScheduledFileIODemo
 {
@@ -14,10 +15,14 @@ namespace ScheduledFileIODemo
         {
             args = args.Select(arg => arg.ToLower()).ToArray();
 
-            // constants
-            var minimumFileSize = 1_000; // bytes
+            var deviceCount = 4;
+
+            var minimumFileSize = 100; // bytes
             var maximumFileSize = 1_000_000; // bytes
+
             var threadCount = Environment.ProcessorCount;
+
+            var mockWrite = args.Contains("-mockwrite");
 
             var fileCount = 500;
             if (args.Contains("-filecount"))
@@ -33,31 +38,33 @@ namespace ScheduledFileIODemo
                 testCount = int.Parse(args[testIndex + 1]);
             }
 
-            var mockWrite = args.Contains("-mockwrite");
+            // create devices
+            var tempWritePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var devices = CreateDevices(deviceCount, tempWritePath, mockWrite);
 
-            var useOptimizedScheduler = args.Contains("-optimized");
+            // create files
+            var filePartitions = Enumerable.Range(0, threadCount)
+                .Select(i => CreateGaussianFiles(fileCount / threadCount, minimumFileSize, maximumFileSize)).ToList();
 
-            Console.WriteLine("Starting test...");
-            Console.WriteLine($"Using {(useOptimizedScheduler ? "optimized" : "round robin")} scheduler.");
             Console.WriteLine($"{fileCount} files per test run.");
             Console.WriteLine($"{testCount} test runs.");
             Console.WriteLine($"{(mockWrite ? "Simulating" : "Using")} file system writes.");
 
+            Console.WriteLine("--------------");
+            Console.WriteLine("Starting test...");
+            Console.WriteLine($"Using round robin scheduler.");
+            RunTest(filePartitions, new RoundRobinWriteScheduler(devices), devices, testCount, threadCount, tempWritePath);
+            Console.WriteLine("--------------");
+            Console.WriteLine("Starting test...");
+            Console.WriteLine($"Using optimized scheduler.");
+            RunTest(filePartitions, new OptimizedWriteScheduler(devices), devices, testCount, threadCount, tempWritePath);
+            
+            // cleanup temporary folders
+            Directory.Delete(tempWritePath, recursive: true);
+        }
 
-            // create files
-            var filePartitions = Enumerable.Range(0, threadCount)
-                .Select(i => minimumFileSize + i * (maximumFileSize - minimumFileSize) / (double)threadCount)
-                .Select(size => CreateFiles(fileCount, (int)size)).ToList();
-
-            // create devices
-            var tempWritePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            var devices = CreateDevices(10, tempWritePath, mockWrite);
-
-            // create scheduler
-            var scheduler = useOptimizedScheduler
-                ? new OptimizedWriteScheduler(devices) as WriteScheduler
-                : new RoundRobinWriteScheduler(devices) as WriteScheduler;
-
+        static void RunTest(List<MockFile[]> filePartitions, WriteScheduler scheduler, Device[] devices, int testCount, int threadCount, string tempWritePath)
+        {
             // arrange tests
             var testTimes = new List<int>();
             var stopwatch = new Stopwatch();
@@ -84,22 +91,40 @@ namespace ScheduledFileIODemo
                 }
                 stopwatch.Stop();
                 testTimes.Add((int)stopwatch.ElapsedMilliseconds);
-                // Console.WriteLine($"Test {i + 1} Time (ms): {stopwatch.ElapsedMilliseconds}");
                 stopwatch.Reset();
+
+                // reset devices
+                Console.WriteLine(devices.Select(d => d.TotalWrites.ToString()).Aggregate((xs, x) => xs + "," + x));
+                foreach (var device in devices)
+                {
+                    (device as FileDevice)?.ResetCounts();
+                }
             }
             Console.WriteLine($"Average Time (ms): {testTimes.Average()}");
             Console.WriteLine($"Standard Deviation (ms): {StandardDeviation(testTimes)}");
 
-            // cleanup temporary folders
-            Directory.Delete(tempWritePath, recursive: true);
         }
 
-        static MockFile[] CreateFiles(int count, int filesLength)
+        static MockFile[] CreateRandomFiles(int count, int minimumSize, int maximumSize)
         {
             var files = new MockFile[count];
+            var random = new Random();
             for (var i = 0; i < count; i++)
             {
-                files[i] = new MockFile { Name = i.ToString(), Data = new byte[filesLength] };
+                var randomDataSize = random.Next(minimumSize, maximumSize);
+                files[i] = new MockFile { Name = i.ToString(), Data = new byte[randomDataSize] };
+            }
+            return files;
+        }
+
+        static MockFile[] CreateGaussianFiles(int count, int minimumSize, int maximumSize)
+        {
+            var files = new MockFile[count];
+            var random = new Random();
+            for (var i = 0; i < count; i++)
+            {
+                var gaussianDataSize = (int)Math.Max(0, ((maximumSize - minimumSize) * (random.NextGaussian() + 4)));
+                files[i] = new MockFile { Name = i.ToString(), Data = new byte[gaussianDataSize] };
             }
             return files;
         }

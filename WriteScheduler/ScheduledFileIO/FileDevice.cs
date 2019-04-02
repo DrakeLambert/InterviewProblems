@@ -52,9 +52,9 @@ namespace DrakeLambert.ScheduledFileIO
                 {
                     if (_mockWrite)
                     {
-                        // file system latency (2 ms)
+                        // file system latency
                         Task.Delay(2).GetAwaiter().GetResult();
-                        // file system write time (250 MB/s)
+                        // file system write time
                         Task.Delay(data.Length / 250_000_000).GetAwaiter().GetResult();
                     }
                     else
@@ -69,6 +69,12 @@ namespace DrakeLambert.ScheduledFileIO
                 Interlocked.Increment(ref _totalWrites);
                 Interlocked.Add(ref _totalBytesWritten, data.Length);
             }
+        }
+
+        public void ResetCounts()
+        {
+            _totalBytesWritten = 0;
+            _totalWrites = 0;
         }
     }
 }
