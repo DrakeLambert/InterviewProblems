@@ -1,84 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using DrakeLambert.ScheduledFileIO;
 
-namespace DrakeLambert.WriteSchedulerDemo
+namespace ScheduledFileIODemo
 {
     class Program
     {
-        const int minimumFileSize = 1000;
-        const int maximumFileSize = 10000000;
-        const int fileCount = 10000;
-
-        const int deviceCount = 10;
-        static readonly string fileWriteBasePath = Path.Combine(Path.GetTempPath(), "WriteSchedulerDemo");
-
         static void Main(string[] args)
         {
-            // generate file data
-            Console.Write($"Generating {fileCount} file(s) with random data between {minimumFileSize} and {maximumFileSize} bytes long...");
-            var random = new Random();
-            var files = Enumerable.Range(0, fileCount).Select(i =>
-            {
-                var byteCount = random.Next(minimumFileSize, maximumFileSize);
-                var bytes = new byte[byteCount];
-                random.NextBytes(bytes);
-                return new MockFile { Name = i.ToString(), Data = bytes };
-            });
-            Console.WriteLine("Done");
+            var files = CreateFiles(1000, 10000);
 
-            // partition files according to processor count
-            var threadCount = Environment.ProcessorCount;
-            Console.Write($"Partitioning files into {threadCount} groups...");
-            var partitionSize = (int)Math.Ceiling(fileCount / (double)threadCount);
-            var partitions = new IEnumerable<MockFile>[threadCount];
-            for (var i = 0; i < threadCount; i++)
+            var devices = CreateDevices(10);
+
+            var scheduler = new OptimizedWriteScheduler(devices);
+
+            
+
+
+            WriteFilesToScheduler(scheduler, files);
+        }
+
+        static MockFile[] CreateFiles(int count, int filesLength)
+        {
+            var files = new MockFile[count];
+            for (var i = 0; i < count; i++)
             {
-                partitions[i] = files.Skip(i * partitionSize).Take(partitionSize);
+                files[i] = new MockFile { Name = i.ToString(), Data = new byte[filesLength] };
             }
-            Console.WriteLine("Done");
+            return files;
+        }
 
-            // generate temporary directories
-            Console.Write($"Generating {deviceCount} temporary directories...");
-            var directories = Enumerable.Range(0, deviceCount).Select(i => Path.Combine(fileWriteBasePath, $"device{i}"));
-            foreach (var directory in directories)
+        static Device[] CreateDevices(int count)
+        {
+            var devices = new Device[count];
+            var devicesWritePath = Path.GetTempPath();
+            for (int i = 0; i < count; i++)
             {
-                Directory.CreateDirectory(directory);
+                var devicePath = Path.Combine(devicesWritePath, "Device" + i.ToString());
+                devices[i] = new FileDevice(devicePath, false);
             }
-            Console.WriteLine("Done");
+            return devices;
+        }
 
-            // configure devices and scheduler
-            var devices = Enumerable.Range(0, deviceCount).Select(i => new FileDevice(Path.Combine(fileWriteBasePath, $"device{i}"))).ToArray();
-            var scheduler = new RoundRobinWriteScheduler(devices);
-
-            // start file writer threads
-            Console.Write($"Starting {threadCount} file writers...");
-            var fileWriterTasks = new Task[threadCount];
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            for (var i = 0; i < threadCount; i++)
+        static void WriteFilesToScheduler(WriteScheduler scheduler, IEnumerable<MockFile> files)
+        {
+            foreach (var file in files)
             {
-                var partition = partitions[i];
-                fileWriterTasks[i] = Task.Run(() =>
-                {
-                    foreach (var file in partition)
-                    {
-                        scheduler.Write(file.Name, file.Data);
-                    }
-                });
+                scheduler.Write(file.Name, file.Data);
             }
-            Task.WhenAll(fileWriterTasks).GetAwaiter().GetResult();
-            stopwatch.Stop();
-            Console.WriteLine($"Done - {stopwatch.ElapsedMilliseconds} ms");
-
-            // temporary file cleanup
-            Console.Write("Deleting temporary files...");
-            Directory.Delete(fileWriteBasePath, true);
-            Console.WriteLine("Done");
         }
     }
 

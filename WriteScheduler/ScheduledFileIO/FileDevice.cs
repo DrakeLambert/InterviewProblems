@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DrakeLambert.ScheduledFileIO
 {
@@ -12,8 +13,15 @@ namespace DrakeLambert.ScheduledFileIO
         private object _writeLock = new object();
 
         private string _fileWritePath;
+        private readonly bool _mockWrite;
 
-        public FileDevice(string fileWritePath) => _fileWritePath = fileWritePath;
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
+        /// <param name="fileWritePath">The path to write files.</param>
+        /// <param name="mockWrite">If true, file writes do not take place: the thread is delayed according to the length of the file data. If false, the file write takes place.</param>
+        /// <returns></returns>
+        public FileDevice(string fileWritePath, bool mockWrite) => (_fileWritePath, _mockWrite) = (fileWritePath, mockWrite);
 
         public int PendingWrites => Interlocked.CompareExchange(ref _pendingWrites, 0, 0);
         public int TotalWrites => Interlocked.CompareExchange(ref _totalWrites, 0, 0);
@@ -32,7 +40,17 @@ namespace DrakeLambert.ScheduledFileIO
             {
                 try
                 {
-                    File.WriteAllBytes(Path.Combine(_fileWritePath, name), data);
+                    if (_mockWrite)
+                    {
+                        // file system latency (2 ms)
+                        Task.Delay(2).GetAwaiter().GetResult();
+                        // file system write time (200 MiB/s)
+                        Task.Delay(data.Length / 209715200).GetAwaiter().GetResult();
+                    }
+                    else
+                    {
+                        File.WriteAllBytes(Path.Combine(_fileWritePath, name), data);
+                    }
                 }
                 finally
                 {

@@ -4,7 +4,9 @@ namespace DrakeLambert.ScheduledFileIO
     {
         private readonly Device[] _devices;
 
-        private object _scheduleLock = new object();
+        private readonly object _scheduleLock = new object();
+
+        private int _nextDeviceIndex = 0;
 
         public OptimizedWriteScheduler(Device[] devices)
         {
@@ -13,16 +15,11 @@ namespace DrakeLambert.ScheduledFileIO
 
         public Device Write(string name, byte[] data)
         {
-            Device selectedDevice = _devices[0];
+            Device selectedDevice;
             lock (_scheduleLock)
             {
-                for (var i = 1; i < _devices.Length; i++)
-                {
-                    if (selectedDevice.PendingWrites > _devices[i].PendingWrites)
-                    {
-                        selectedDevice = _devices[i];
-                    }
-                }
+                selectedDevice = _devices[_nextDeviceIndex];
+                _nextDeviceIndex = (_nextDeviceIndex + 1) % _devices.Length;
             }
             selectedDevice.Write(name, data);
             return selectedDevice;

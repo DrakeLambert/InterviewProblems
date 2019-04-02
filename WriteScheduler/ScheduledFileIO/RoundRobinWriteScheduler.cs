@@ -4,9 +4,9 @@ namespace DrakeLambert.ScheduledFileIO
     {
         private readonly Device[] _devices;
 
-        private int _nextDeviceIndex = 0;
+        private readonly object _scheduleLock = new object();
 
-        private object _scheduleLock = new object();
+        private int _nextDeviceIndex = 0;
 
         public RoundRobinWriteScheduler(Device[] devices)
         {
