@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduledFileIO", "Schedule
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduledFileIODemo", "ScheduledFileIODemo\ScheduledFileIODemo.csproj", "{231589A2-6DDA-4339-B4A3-786ECF823535}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduledFileIOTests", "ScheduledFileIOTests\ScheduledFileIOTests.csproj", "{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,17 @@ Global
 		{231589A2-6DDA-4339-B4A3-786ECF823535}.Release|x64.Build.0 = Release|Any CPU
 		{231589A2-6DDA-4339-B4A3-786ECF823535}.Release|x86.ActiveCfg = Release|Any CPU
 		{231589A2-6DDA-4339-B4A3-786ECF823535}.Release|x86.Build.0 = Release|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Debug|x64.Build.0 = Debug|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Debug|x86.Build.0 = Debug|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Release|x64.ActiveCfg = Release|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Release|x64.Build.0 = Release|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Release|x86.ActiveCfg = Release|Any CPU
+		{FAE7F304-964F-46D6-9D31-3A0FD1FE7C64}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

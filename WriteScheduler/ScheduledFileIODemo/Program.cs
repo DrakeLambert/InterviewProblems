@@ -7,7 +7,7 @@ using System.Threading;
 using DrakeLambert.ScheduledFileIO;
 using Medallion;
 
-namespace ScheduledFileIODemo
+namespace DrakeLambert.ScheduledFileIODemo
 {
     class Program
     {
@@ -15,12 +15,12 @@ namespace ScheduledFileIODemo
         {
             args = args.Select(arg => arg.ToLower()).ToArray();
 
-            var deviceCount = 4;
+            var threadCount = 20;
+            var deviceCount = 5;
 
             var minimumFileSize = 100; // bytes
             var maximumFileSize = 1_000_000; // bytes
 
-            var threadCount = Environment.ProcessorCount;
 
             var mockWrite = args.Contains("-mockwrite");
 
@@ -58,7 +58,7 @@ namespace ScheduledFileIODemo
             Console.WriteLine("Starting test...");
             Console.WriteLine($"Using optimized scheduler.");
             RunTest(filePartitions, new OptimizedWriteScheduler(devices), devices, testCount, threadCount, tempWritePath);
-            
+
             // cleanup temporary folders
             Directory.Delete(tempWritePath, recursive: true);
         }
@@ -93,8 +93,8 @@ namespace ScheduledFileIODemo
                 testTimes.Add((int)stopwatch.ElapsedMilliseconds);
                 stopwatch.Reset();
 
+                // Console.WriteLine(devices.Select(d => d.TotalWrites.ToString()).Aggregate((xs, x) => xs + "," + x));
                 // reset devices
-                Console.WriteLine(devices.Select(d => d.TotalWrites.ToString()).Aggregate((xs, x) => xs + "," + x));
                 foreach (var device in devices)
                 {
                     (device as FileDevice)?.ResetCounts();
