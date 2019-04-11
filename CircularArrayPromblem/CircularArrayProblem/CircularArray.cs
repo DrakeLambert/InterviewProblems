@@ -38,6 +38,7 @@ namespace DrakeLambert.CircularArrayProblem
         /// Returns the number of elements in the CircularArray.
         /// </summary>
         public int Size => _size;
+
         /// <summary>
         /// Returns the element at the given relative index. If the given item is not
         /// available, this method will return null. The relative index starts at 0
@@ -47,7 +48,15 @@ namespace DrakeLambert.CircularArrayProblem
         /// <returns>value</returns>
         public object Get(int index)
         {
-            throw new NotImplementedException();
+            if (index < 0 || index >= _capacity)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), "Index must be greater than 0 and less than the capacity of the CircularArray.");
+            }
+            if (index >= _size)
+            {
+                return null;
+            }
+            return _objects[RealIndex(index)];
         }
 
         /// <summary>
@@ -56,8 +65,15 @@ namespace DrakeLambert.CircularArrayProblem
         /// <param name="o">The new object</param>
         public void Add(object o)
         {
-            _objects[(_headIndex + _size) % _capacity] = o;
-            _size = (_size + 1) % _capacity;
+            _objects[RealIndex(_size)] = o;
+            if (_size < _capacity)
+            {
+                _size++;
+            }
+            else
+            {
+                _headIndex = RealIndex(1);
+            }
         }
 
         /// <summary>
@@ -68,7 +84,32 @@ namespace DrakeLambert.CircularArrayProblem
         /// <returns>The index of the given element</returns>
         public int IndexOf(object o)
         {
-            throw new NotImplementedException();
+            var index = -1;
+            for (var i = 0; i < _size; i++)
+            {
+                if (_objects[RealIndex(i)].Equals(o))
+                {
+                    return i;
+                }
+            }
+            return index;
+        }
+
+        private int RealIndex(int relativeIndex)
+        {
+            return (_headIndex + relativeIndex) % _capacity;
+        }
+
+        private int RelativeIndex(int realIndex)
+        {
+            if (realIndex >= _headIndex)
+            {
+                return realIndex - _headIndex;
+            }
+            else
+            {
+                return realIndex - _headIndex + _capacity;
+            }
         }
     }
 }
