@@ -141,10 +141,28 @@ namespace DrakeLambert.UnitTests
             }
         }
 
-        [Fact]
-        public void IndexOf_ExistingObject_ReturnsIndex()
+        [Theory]
+        [InlineData(5)]
+        [InlineData(10)]
+        [InlineData(20)]
+        public void IndexOf_ExistingObjects_ReturnsIndex(int objectCount)
         {
-            throw new NotImplementedException();
+            int capacity = 10;
+            var circularArray = new CircularArray(capacity);
+            var testObjects = Enumerable.Range(0, objectCount).Select(_ => new object()).ToArray();
+
+            foreach (var testObject in testObjects)
+            {
+                circularArray.Add(testObject);
+            }
+
+            var verifiableObjectCount = Math.Min(capacity, objectCount);
+            var verifiableObjects = testObjects.TakeLast(verifiableObjectCount).ToArray();
+            for (var i = 0; i < verifiableObjectCount; i++)
+            {
+                var verifiableObject = verifiableObjects[i];
+                Assert.Equal(i, circularArray.IndexOf(verifiableObject));
+            }
         }
     }
 }
