@@ -102,13 +102,14 @@ namespace DrakeLambert.CircularArrayProblem
 
         private int RelativeIndex(int realIndex)
         {
-            if (realIndex >= _headIndex)
+            var currentHeadIndex = _headIndex;
+            if (realIndex >= currentHeadIndex)
             {
-                return realIndex - _headIndex;
+                return realIndex - currentHeadIndex;
             }
             else
             {
-                return realIndex - _headIndex + _capacity;
+                return realIndex - currentHeadIndex + _capacity;
             }
         }
     }
