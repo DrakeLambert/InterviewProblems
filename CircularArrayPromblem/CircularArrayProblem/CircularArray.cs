@@ -12,6 +12,8 @@ namespace DrakeLambert.CircularArrayProblem
 
         private int _size = 0;
 
+        private readonly object _dataLock = new object();
+
         /// <summary>
         /// Constructs a new CircularArray with the given capacity.
         /// </summary>
@@ -52,11 +54,14 @@ namespace DrakeLambert.CircularArrayProblem
             {
                 throw new ArgumentOutOfRangeException(nameof(index), "Index must be greater than 0 and less than the capacity of the CircularArray.");
             }
-            if (index >= _size)
+            lock (_dataLock)
             {
-                return null;
+                if (index >= _size)
+                {
+                    return null;
+                }
+                return _objects[RealIndex(index)];
             }
-            return _objects[RealIndex(index)];
         }
 
         /// <summary>
@@ -65,14 +70,17 @@ namespace DrakeLambert.CircularArrayProblem
         /// <param name="o">The new object</param>
         public void Add(object o)
         {
-            _objects[RealIndex(_size)] = o;
-            if (_size < _capacity)
+            lock (_dataLock)
             {
-                _size++;
-            }
-            else
-            {
-                _headIndex = RealIndex(1);
+                _objects[RealIndex(_size)] = o;
+                if (_size < _capacity)
+                {
+                    _size++;
+                }
+                else
+                {
+                    _headIndex = RealIndex(1);
+                }
             }
         }
 
@@ -85,11 +93,14 @@ namespace DrakeLambert.CircularArrayProblem
         public int IndexOf(object o)
         {
             var index = -1;
-            for (var i = 0; i < _size; i++)
+            lock (_dataLock)
             {
-                if (_objects[RealIndex(i)].Equals(o))
+                for (var i = 0; i < _size; i++)
                 {
-                    return i;
+                    if (_objects[RealIndex(i)].Equals(o))
+                    {
+                        return i;
+                    }
                 }
             }
             return index;
