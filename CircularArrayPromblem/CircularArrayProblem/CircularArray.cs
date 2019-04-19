@@ -2,9 +2,9 @@
 
 namespace DrakeLambert.CircularArrayProblem
 {
-    public class CircularArray
+    public class CircularArray<T>
     {
-        private readonly object[] _objects;
+        private readonly T[] _objects;
 
         private readonly int _capacity;
 
@@ -28,7 +28,7 @@ namespace DrakeLambert.CircularArrayProblem
                 throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be greater than 1.");
             }
             _capacity = capacity;
-            _objects = new object[_capacity];
+            _objects = new T[_capacity];
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace DrakeLambert.CircularArrayProblem
         /// </summary>
         /// <param name="index">The relative index of the element.</param>
         /// <returns>value</returns>
-        public object Get(int index)
+        public T Get(int index)
         {
             if (index < 0 || index >= _capacity)
             {
@@ -58,7 +58,7 @@ namespace DrakeLambert.CircularArrayProblem
             {
                 if (index >= _size)
                 {
-                    return null;
+                    return default(T);
                 }
                 return _objects[RealIndex(index)];
             }
@@ -68,7 +68,7 @@ namespace DrakeLambert.CircularArrayProblem
         /// Adds an object to the back of the CircularArray.
         /// </summary>
         /// <param name="o">The new object</param>
-        public void Add(object o)
+        public void Add(T o)
         {
             lock (_dataLock)
             {
@@ -90,16 +90,16 @@ namespace DrakeLambert.CircularArrayProblem
         /// </summary>
         /// <param name="o">The object to find in the array</param>
         /// <returns>The index of the given element</returns>
-        public int IndexOf(object o)
+        public int IndexOf(T o)
         {
             var index = -1;
             lock (_dataLock)
             {
                 for (var i = 0; i < _size; i++)
                 {
-                    if (_objects[RealIndex(i)].Equals(o))
+                    if (_objects[i].Equals(o))
                     {
-                        return i;
+                        return RelativeIndex(i);
                     }
                 }
             }

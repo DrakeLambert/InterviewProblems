@@ -17,7 +17,7 @@ namespace DrakeLambert.UnitTests
         [InlineData(5000)]
         public void Constructor_ValidCapacity_SetsInitialParameters(int capacity)
         {
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
 
             Assert.Equal(capacity, circularArray.Capacity);
             Assert.Equal(0, circularArray.Size);
@@ -29,14 +29,14 @@ namespace DrakeLambert.UnitTests
         [InlineData(0)]
         public void Constructor_InvalidCapacity_ThrowsArgumentOutOfRangeException(int capacity)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(nameof(capacity), () => new CircularArray(capacity));
+            Assert.Throws<ArgumentOutOfRangeException>(nameof(capacity), () => new CircularArray<object>(capacity));
         }
 
         [Fact]
         public void Get_NoObjects_ReturnsNull()
         {
             var capacity = 10;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
 
             for (var i = 0; i < capacity; i++)
             {
@@ -48,7 +48,7 @@ namespace DrakeLambert.UnitTests
         public void Add_MultipleObjects_IncrementsSize()
         {
             var capacity = 10;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
 
             for (var i = 1; i <= capacity; i++)
             {
@@ -61,7 +61,7 @@ namespace DrakeLambert.UnitTests
         public void AddAndGet_MultipleObjectsOverCapacity_IncrementsSizeUntilCapacity()
         {
             var capacity = 10;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
             for (var i = 0; i < capacity; i++)
             {
                 circularArray.Add(new object());
@@ -78,7 +78,7 @@ namespace DrakeLambert.UnitTests
         public void AddAndGet_SingleObject_InsertsObjectAtBackOfArray()
         {
             var capacity = 10;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
             var testObject = new object();
 
             circularArray.Add(testObject);
@@ -90,7 +90,7 @@ namespace DrakeLambert.UnitTests
         public void AddAndGet_MultipleObjects_InsertsObjectsAtBackOfArray()
         {
             var capacity = 10;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
             var objects = Enumerable.Range(0, 10).Select(_ => new object()).ToArray();
 
             for (var i = 0; i < capacity; i++)
@@ -109,7 +109,7 @@ namespace DrakeLambert.UnitTests
         {
             var capacity = 10;
             var objectCount = capacity * 2;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
             var addedObjects = new List<object>();
 
             for (var i = 0; i < 1; i++)
@@ -130,7 +130,7 @@ namespace DrakeLambert.UnitTests
         public void IndexOf_NonExistentObject_ReturnsNegativeOne()
         {
             var capacity = 10;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
             var objectsToAdd = Enumerable.Range(0, capacity).Select(_ => new object()).ToArray();
 
             foreach (var item in objectsToAdd)
@@ -145,10 +145,11 @@ namespace DrakeLambert.UnitTests
         [InlineData(5)]
         [InlineData(10)]
         [InlineData(20)]
+        [InlineData(25)]
         public void IndexOf_ExistingObjects_ReturnsIndex(int objectCount)
         {
             int capacity = 10;
-            var circularArray = new CircularArray(capacity);
+            var circularArray = new CircularArray<object>(capacity);
             var testObjects = Enumerable.Range(0, objectCount).Select(_ => new object()).ToArray();
 
             foreach (var testObject in testObjects)
